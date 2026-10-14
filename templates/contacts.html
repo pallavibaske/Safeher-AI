@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Contacts · SafeHer AI{% endblock %}
+{% block content %}
+<h1>Trusted contacts</h1>
+<p class="lead">These people receive your SOS, battery and check-in alerts. You can keep up to {{ max_contacts }}.</p>
+<div class="two-col">
+  <section>
+    {% if rows %}
+    <ul class="cards">
+      {% for c in rows %}
+      <li class="panel contact">
+        <div><b>{{ c.name }}</b>{% if c.relation %} <span class="tag">{{ c.relation }}</span>{% endif %}
+          <div class="muted">{{ c.phone or '—' }}{% if c.email %} · {{ c.email }}{% endif %}</div></div>
+        <form method="post" action="{{ url_for('delete_contact', cid=c.id) }}" onsubmit="return confirm('Remove {{ c.name|e }} from your contacts?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="link-btn danger">Remove</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="panel empty"><b>No contacts yet.</b><p>Add someone you trust, like a parent, sibling or friend. Without a contact, an SOS can only be recorded, not delivered.</p></div>
+    {% endif %}
+  </section>
+  <form method="post" class="form panel">
+    <h3>Add a contact</h3>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Name<input name="name" required maxlength="80"></label>
+    <label>Phone<input type="tel" name="phone" maxlength="20" placeholder="98XXXXXXXX"></label>
+    <label>Email<input type="email" name="email" maxlength="120"></label>
+    <label>Relationship<input name="relation" maxlength="40" placeholder="Mother, friend, guardian"></label>
+    <button class="btn">Save contact</button>
+  </form>
+</div>
+{% endblock %}

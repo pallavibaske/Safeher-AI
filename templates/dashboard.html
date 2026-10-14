@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Home · SafeHer AI{% endblock %}
+{% block content %}
+<h1 class="greet">Hi {{ user.name.split()[0] }}.</h1>
+
+<div id="battery-banner" class="banner" hidden>
+  <span>Your battery is low (<b id="battery-level"></b>%). Let your guardians know where you are?</span>
+  <button class="btn small alarm" id="battery-send">Send battery alert</button>
+</div>
+
+<section class="sos-zone">
+  <button class="sos-btn" id="sos-btn" aria-describedby="sos-hint">
+    <span class="sos-text">SOS</span><span class="sos-sub">Hold nothing. Press once.</span>
+  </button>
+  <div class="sos-side">
+    <p id="sos-hint">Pressing starts a <b>{{ user.countdown }}-second</b> countdown. You can cancel it. After that, your location and a message go to your guardians.</p>
+    {% if n_contacts == 0 %}
+      <p class="warn">You have no trusted contacts yet. <a href="{{ url_for('contacts') }}">Add one</a> so an alert reaches someone.</p>
+    {% else %}
+      <p class="ok-note">{{ n_contacts }} trusted contact{{ '' if n_contacts==1 else 's' }} will be alerted.</p>
+    {% endif %}
+    <div class="row">
+      <a class="btn alarm small" href="tel:112">Call 112</a>
+      <a class="btn ghost small" href="tel:1091">Women helpline 1091</a>
+    </div>
+  </div>
+</section>
+
+<section class="grid-3">
+  <a class="tile" href="{{ url_for('checkin') }}"><h3>Safety check-in</h3><p>Set a timer for your journey. We ask if you're safe when it ends.</p>
+    <small>{% if last_checkin %}Last: {{ last_checkin.response.replace('_',' ') }}, {{ last_checkin.created_at }}{% else %}No check-ins yet{% endif %}</small></a>
+  <a class="tile" href="{{ url_for('route') }}"><h3>Safe route</h3><p>Plan a walking route and share your trip with a guardian.</p></a>
+  <a class="tile" href="{{ url_for('assistant') }}"><h3>AI safety assistant</h3><p>Ask what to do and get quick, practical steps.</p></a>
+  <a class="tile" href="{{ url_for('contacts') }}"><h3>Trusted contacts</h3><p>Manage the people who receive your alerts.</p><small>{{ n_contacts }} saved</small></a>
+  <a class="tile" href="{{ url_for('history') }}"><h3>SOS history</h3><p>See past alerts and what was sent.</p>
+    <small>{% if last %}Last alert: {{ last.created_at }}{% else %}No alerts sent{% endif %}</small></a>
+  <a class="tile" href="{{ url_for('profile') }}"><h3>Profile and settings</h3><p>Your details and the SOS countdown length.</p></a>
+</section>
+{% endblock %}
