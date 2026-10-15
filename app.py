@@ -9,6 +9,7 @@ import urllib.parse
 from datetime import datetime
 from email.message import EmailMessage
 from functools import wraps
+from zoneinfo import ZoneInfo
 
 import requests
 from flask import (Flask, abort, flash, g, jsonify, redirect, render_template,
@@ -25,6 +26,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "safeher.db"))
 DEFAULT_CC = os.environ.get("DEFAULT_COUNTRY_CODE", "91")
 MAX_CONTACTS = 5
+TZ = ZoneInfo(os.environ.get("APP_TIMEZONE", "Asia/Kolkata"))
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
@@ -100,7 +102,7 @@ init_db()
 
 
 def now():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 
 # ---------------------------------------------------------------- auth + csrf
@@ -171,8 +173,8 @@ def signup():
         get_db().commit()
         session.clear()
         session["uid"] = cur.lastrowid
-        flash("Account created. Add a trusted contact so SOS alerts have someone to reach.", "ok")
-        return redirect(url_for("contacts"))
+        flash("Account created. Welcome to SafeHer AI!", "ok")
+        return redirect(url_for("dashboard"))
     return render_template("auth.html", mode="signup", form={})
 
 
@@ -320,7 +322,7 @@ def build_message(user, lat, lng, accuracy, trigger, battery):
         parts.append(f"Battery: {battery}%")
     if user["phone"]:
         parts.append(f"Phone: {user['phone']}")
-    parts.append("Time: " + datetime.now().strftime("%d %b %Y, %I:%M %p"))
+    parts.append("Time: " + datetime.now(TZ).strftime("%d %b %Y, %I:%M %p"))
     return "\n".join(parts)
 
 
