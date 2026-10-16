@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block body %}
+<h1>🚨 SOS Emergency</h1>
+<div id="idle"><p class="center mut">Press once. You get a 5-second countdown to cancel before the alert is sent.</p>
+<button class="sosbtn" id="go">SOS</button></div>
+<div id="count" hidden><p class="center">Sending alert in…</p><div class="big" id="n">5</div>
+<p class="center"><button class="btn ghost" id="cancel">Cancel</button> <button class="btn" id="now">Send now</button></p></div>
+<div id="done" hidden class="card"><h3 id="dt"></h3><p id="dm"></p><p><a id="wa" class="btn ok" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Also send via WhatsApp</a></p></div>
+<div class="notice">If you are in immediate danger call <b>112</b> (women helpline <b>1091</b>) directly. Delivery to contacts depends on location permission, network access and the configured email service.</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='app.js') }}"></script><script>
+const $=i=>document.getElementById(i);let t=null,s=5;
+function show(x){['idle','count','done'].forEach(k=>$(k).hidden=k!==x)}
+function stop(){clearInterval(t);t=null}
+async function send(){stop();show('done');$('dt').textContent='Sending…';$('dm').textContent='';
+ const r=await SH.alert('sos','SOS pressed from SafeHer AI');
+ $('dt').textContent='SOS recorded';
+ $('dm').textContent=r.contacts===0?'No emergency contacts saved - add some in Profile.':
+   r.notified>0?`Email sent to ${r.notified} contact(s).`:(r.email_configured?'No contact has an email address.':'Email service is not configured on the server - use the WhatsApp button to notify your guardian.');
+ $('wa').href='https://wa.me/?text='+encodeURIComponent(r.share_text)}
+$('go').onclick=()=>{s=5;$('n').textContent=s;show('count');t=setInterval(()=>{s--;$('n').textContent=s;if(s<=0)send()},1000)};
+$('cancel').onclick=()=>{stop();show('idle')};$('now').onclick=send;
+</script>{% endblock %}

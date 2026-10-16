@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Sign up · SafeHer AI{% endblock %}
+{% block bodyclass %}hero-bg{% endblock %}
+{% block body %}<div class="auth card"><h1>Create account</h1>
+<form method="post"><label>Full name</label><input name="name" required>
+<label>Email</label><input type="email" name="email" required>
+<label>Phone</label><input name="phone" type="tel">
+<label>Password (min 6 characters)</label><input type="password" name="password" minlength="6" required>
+<button class="btn" style="width:100%">Sign up</button></form>
+<p>Already registered? <a href="{{ url_for('login') }}">Sign in</a></p></div>{% endblock %}

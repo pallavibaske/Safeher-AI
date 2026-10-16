@@ -1,39 +1,20 @@
-{% extends "base.html" %}
-{% block title %}Home · SafeHer AI{% endblock %}
-{% block content %}
-<h1 class="greet">Hi {{ user.name.split()[0] }}.</h1>
-
-<div id="battery-banner" class="banner" hidden>
-  <span>Your battery is low (<b id="battery-level"></b>%). Let your guardians know where you are?</span>
-  <button class="btn small alarm" id="battery-send">Send battery alert</button>
+{% extends "base.html" %}{% block body %}
+<h1>Hello, {{ user['name'] }} 👋</h1>
+{% if contacts == 0 %}<div class="notice">You have no emergency contacts yet. <a href="{{ url_for('profile') }}">Add one</a> so SOS alerts can reach someone.</div>{% endif %}
+<div class="grid">
+<a class="card" href="{{ url_for('sos_page') }}"><h3>🚨 SOS Emergency</h3><p>Countdown, then alert guardians with your location.</p></a>
+<a class="card" href="{{ url_for('assistant') }}"><h3>🤖 AI Safety Assistant</h3><p>Ask for safety advice (English / हिंदी / मराठी).</p></a>
+<a class="card" href="{{ url_for('safe_route') }}"><h3>🗺️ Safe Route</h3><p>Find a route and see nearby help points.</p></a>
+<a class="card" href="{{ url_for('checkin_page') }}"><h3>✅ Safety Check-in</h3><p>Periodic "I'm safe" / "I need help" check.</p></a>
+<a class="card" href="{{ url_for('profile') }}"><h3>👪 Emergency Contacts</h3><p>{{ contacts }} saved guardian(s).</p></a>
+<a class="card" href="{{ url_for('history') }}"><h3>📜 Safety History</h3><p>{% if last %}Last alert: {{ last['created_at'] }}{% else %}No alerts yet.{% endif %}</p></a>
+<div class="card"><h3>🔋 Battery</h3><p id="bat">Checking…</p></div>
+<div class="card"><h3>📍 Live Location</h3><p id="loc">Not shared</p><button class="btn ghost" onclick="SH.share()">Share / copy my location</button></div>
 </div>
-
-<section class="sos-zone">
-  <button class="sos-btn" id="sos-btn" aria-describedby="sos-hint">
-    <span class="sos-text">SOS</span><span class="sos-sub">Hold nothing. Press once.</span>
-  </button>
-  <div class="sos-side">
-    <p id="sos-hint">Pressing starts a <b>{{ user.countdown }}-second</b> countdown. You can cancel it. After that, your location and a message go to your guardians.</p>
-    {% if n_contacts == 0 %}
-      <p class="warn">You have no trusted contacts yet. <a href="{{ url_for('contacts') }}">Add one</a> so an alert reaches someone.</p>
-    {% else %}
-      <p class="ok-note">{{ n_contacts }} trusted contact{{ '' if n_contacts==1 else 's' }} will be alerted.</p>
-    {% endif %}
-    <div class="row">
-      <a class="btn alarm small" href="tel:112">Call 112</a>
-      <a class="btn ghost small" href="tel:1091">Women helpline 1091</a>
-    </div>
-  </div>
-</section>
-
-<section class="grid-3">
-  <a class="tile" href="{{ url_for('checkin') }}"><h3>Safety check-in</h3><p>Set a timer for your journey. We ask if you're safe when it ends.</p>
-    <small>{% if last_checkin %}Last: {{ last_checkin.response.replace('_',' ') }}, {{ last_checkin.created_at }}{% else %}No check-ins yet{% endif %}</small></a>
-  <a class="tile" href="{{ url_for('route') }}"><h3>Safe route</h3><p>Plan a walking route and share your trip with a guardian.</p></a>
-  <a class="tile" href="{{ url_for('assistant') }}"><h3>AI safety assistant</h3><p>Ask what to do and get quick, practical steps.</p></a>
-  <a class="tile" href="{{ url_for('contacts') }}"><h3>Trusted contacts</h3><p>Manage the people who receive your alerts.</p><small>{{ n_contacts }} saved</small></a>
-  <a class="tile" href="{{ url_for('history') }}"><h3>SOS history</h3><p>See past alerts and what was sent.</p>
-    <small>{% if last %}Last alert: {{ last.created_at }}{% else %}No alerts sent{% endif %}</small></a>
-  <a class="tile" href="{{ url_for('profile') }}"><h3>Profile and settings</h3><p>Your details and the SOS countdown length.</p></a>
-</section>
+<p class="mut">Emergency numbers (India): Police 112 · Women helpline 1091. AI output is guidance, not a replacement for emergency services.</p>
 {% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script>SH.battery(document.getElementById('bat'));
+SH.share=async()=>{try{const p=await SH.pos();const l=`https://www.google.com/maps?q=${p.lat},${p.lng}`;
+document.getElementById('loc').textContent=l;if(navigator.share)navigator.share({title:'My location',text:l});else navigator.clipboard&&navigator.clipboard.writeText(l)}
+catch(e){document.getElementById('loc').textContent='Location permission denied or unavailable.'}}</script>{% endblock %}

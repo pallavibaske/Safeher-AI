@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Sign in · SafeHer AI{% endblock %}
+{% block bodyclass %}hero-bg{% endblock %}
+{% block body %}<div class="auth card"><h1>🛡️ SafeHer AI</h1><p class="mut">Smart Women Safety System</p>
+<form method="post"><label>Email</label><input type="email" name="email" required autofocus>
+<label>Password</label><input type="password" name="password" required>
+<button class="btn" style="width:100%">Sign in</button></form>
+<p>New here? <a href="{{ url_for('signup') }}">Create an account</a></p></div>{% endblock %}

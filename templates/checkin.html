@@ -1,41 +1,11 @@
-{% extends "base.html" %}
-{% block title %}Check-in · SafeHer AI{% endblock %}
-{% block content %}
-<h1>Safety check-in</h1>
-<p class="lead">Heading somewhere? Set a timer. When it ends we ask if you're safe. If you say you need help, or don't answer in 30 seconds, an SOS is sent to your guardians.</p>
-<section class="panel checkin-card">
-  <div id="ci-setup">
-    <label class="inline">Check on me in
-      <select id="ci-minutes">
-        <option value="1">1 minute (test)</option><option value="10">10 minutes</option><option value="20" selected>20 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option>
-      </select></label>
-    <button class="btn big" id="ci-start">Start check-in</button>
-    <p class="fine">Keep this page open. Browsers can't run the timer if the tab is closed.</p>
-  </div>
-  <div id="ci-running" hidden>
-    <div class="timer" id="ci-time">00:00</div>
-    <p>Timer running. We'll ask if you're safe when it ends.</p>
-    <button class="btn light" id="ci-stop">I've arrived, stop</button>
-  </div>
-  <div id="ci-ask" hidden class="ci-ask">
-    <h2>Are you safe?</h2>
-    <p>Answering in <b id="ci-left">30</b> seconds. No answer sends an SOS.</p>
-    <div class="row"><button class="btn big safe" id="ci-safe">I'm safe</button><button class="btn big alarm" id="ci-help">I need help</button></div>
-  </div>
-</section>
-{% endblock %}
-{% block scripts %}
-<script>
-const $=id=>document.getElementById(id); let end=0, tick=null, askTimer=null;
-const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-function show(which){ ['ci-setup','ci-running','ci-ask'].forEach(i=>$(i).hidden=(i!==which)); }
-$('ci-start').onclick=()=>{ end=Date.now()+parseInt($('ci-minutes').value)*60000; show('ci-running');
-  tick=setInterval(()=>{ const left=Math.max(0,Math.round((end-Date.now())/1000)); $('ci-time').textContent=fmt(left); if(left===0){clearInterval(tick); ask();} },500); };
-$('ci-stop').onclick=()=>{ clearInterval(tick); show('ci-setup'); };
-function ask(){ show('ci-ask'); let n=30; $('ci-left').textContent=n; if(navigator.vibrate) navigator.vibrate([300,150,300]);
-  askTimer=setInterval(()=>{ n--; $('ci-left').textContent=n; if(n<=0){ clearInterval(askTimer); escalate('no_response'); } },1000); }
-async function safe(){ clearInterval(askTimer); await api('/api/checkin',{response:'safe'}); show('ci-setup'); alert('Glad you are safe. Check-in saved.'); }
-async function escalate(resp){ clearInterval(askTimer); await api('/api/checkin',{response:resp}); show('ci-setup'); sendSOS('checkin'); }
-$('ci-safe').onclick=safe; $('ci-help').onclick=()=>escalate('help');
-</script>
-{% endblock %}
+{% extends "base.html" %}{% block body %}
+<h1>✅ Safety Check-in</h1><div class="card center"><h3>Are you safe right now?</h3>
+<div class="row" style="margin:14px 0"><button class="btn ok" onclick="ans('safe')">I'm safe</button><button class="btn" onclick="ans('help')">I need help</button></div>
+<p id="r" class="mut"></p></div>
+<h3>Recent check-ins</h3><table><tr><th>Time</th><th>Status</th></tr>
+{% for r in rows %}<tr><td>{{ r['created_at'] }}</td><td>{{ '✅ Safe' if r['status']=='safe' else '🚨 Help' }}</td></tr>{% else %}<tr><td colspan="2" class="mut">None yet.</td></tr>{% endfor %}</table>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='app.js') }}"></script><script>
+async function ans(s){await SH.post('/api/checkin',{status:s});const r=document.getElementById('r');
+ if(s==='help'){r.textContent='Sending help alert…';const x=await SH.alert('checkin_help','Check-in: user asked for help');r.textContent='Help alert recorded. '+(x.notified?`Emailed ${x.notified} contact(s).`:'Open SOS page to share via WhatsApp, or call 112.')}
+ else{r.textContent='Glad you are safe. Check-in saved.';setTimeout(()=>location.reload(),900)}}
+</script>{% endblock %}

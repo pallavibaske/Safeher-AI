@@ -1,34 +1,10 @@
-{% extends "base.html" %}
-{% block title %}Assistant · SafeHer AI{% endblock %}
-{% block content %}
-<h1>AI safety assistant</h1>
-<p class="lead">Ask in English, मराठी or हिंदी. In immediate danger, use the SOS button or call 112.</p>
-<div class="chat panel">
-  <div id="chat-log" class="chat-log" aria-live="polite">
-    <div class="msg bot">Hi. Tell me what's going on, or pick a question below.</div>
-  </div>
-  <div class="chips">
-    <button class="chip" data-q="I think someone is following me. What should I do?">Someone is following me</button>
-    <button class="chip" data-q="I'm taking a cab alone at night. How do I stay safe?">Cab alone at night</button>
-    <button class="chip" data-q="मला रात्री एकटीने घरी जायचं आहे, काय काळजी घ्यावी?">रात्री एकटीने घरी</button>
-  </div>
-  <form id="chat-form" class="chat-form">
-    <input id="chat-input" placeholder="Type your question" maxlength="1000" required autocomplete="off">
-    <button class="btn">Ask</button>
-  </form>
-</div>
-<p class="fine">AI answers are guidance, not a replacement for emergency services or professional advice.</p>
-{% endblock %}
-{% block scripts %}
-<script>
-const log = document.getElementById('chat-log'), input = document.getElementById('chat-input');
-function add(text, who){ const d=document.createElement('div'); d.className='msg '+who; d.textContent=text; log.appendChild(d); log.scrollTop=log.scrollHeight; return d; }
-async function ask(q){
-  add(q,'me'); const wait=add('Thinking…','bot');
-  try{ const r=await api('/api/assistant',{message:q}); wait.textContent=r.reply||r.error||'Something went wrong.'; }
-  catch(e){ wait.textContent='Could not reach the server. Check your connection and try again.'; }
-}
-document.getElementById('chat-form').addEventListener('submit',e=>{e.preventDefault(); const q=input.value.trim(); if(!q) return; input.value=''; ask(q);});
-document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.q)));
-</script>
-{% endblock %}
+{% extends "base.html" %}{% block body %}
+<h1>🤖 AI Safety Assistant</h1><div id="chat"><div class="m b">Hi! Ask me about safety — travelling alone, being followed, a safe plan for tonight… You can write in English, हिंदी or मराठी.</div></div>
+<form id="f" class="row" style="flex-wrap:nowrap"><input id="q" placeholder="Type your question…" autocomplete="off" required><button class="btn" style="flex:0 0 auto">Send</button></form>
+<p class="mut">AI guidance is not a replacement for emergency services — call 112 in danger.</p>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='app.js') }}"></script><script>
+const chat=document.getElementById('chat');
+function add(t,c){const d=document.createElement('div');d.className='m '+c;d.textContent=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d}
+document.getElementById('f').onsubmit=async e=>{e.preventDefault();const q=document.getElementById('q');const v=q.value.trim();if(!v)return;q.value='';
+ add(v,'u');const w=add('…','b');try{const r=await SH.post('/api/chat',{message:v});w.textContent=r.reply||r.error}catch(x){w.textContent='Network error.'}}
+</script>{% endblock %}
