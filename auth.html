@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Create account' if mode=='signup' else 'Sign in' }} · SafeHer AI{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>{{ 'Create your account' if mode=='signup' else 'Welcome back' }}</h1>
+  <form method="post" class="form panel" autocomplete="on">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {% if mode=='signup' %}
+    <label>Full name<input name="name" required maxlength="80" value="{{ form.get('name','') }}" autocomplete="name"></label>
+    {% endif %}
+    <label>Email<input type="email" name="email" required value="{{ form.get('email','') }}" autocomplete="email"></label>
+    {% if mode=='signup' %}
+    <label>Your phone number<input type="tel" name="phone" maxlength="20" value="{{ form.get('phone','') }}" autocomplete="tel"><small>Shared with guardians in an alert so they can call you back.</small></label>
+    {% endif %}
+    <label>Password<input type="password" name="password" required minlength="{{ 8 if mode=='signup' else 1 }}" autocomplete="{{ 'new-password' if mode=='signup' else 'current-password' }}">{% if mode=='signup' %}<small>At least 8 characters.</small>{% endif %}</label>
+    <button class="btn big">{{ 'Create account' if mode=='signup' else 'Sign in' }}</button>
+  </form>
+  <p class="fine">{% if mode=='signup' %}Already registered? <a href="{{ url_for('login') }}">Sign in</a>{% else %}New here? <a href="{{ url_for('signup') }}">Create an account</a>{% endif %}</p>
+</section>
+{% endblock %}

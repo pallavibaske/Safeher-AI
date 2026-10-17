@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Profile · SafeHer AI{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>Profile and settings</h1>
+  <form method="post" class="form panel">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Full name<input name="name" required maxlength="80" value="{{ user.name }}"></label>
+    <label>Email<input value="{{ user.email }}" disabled></label>
+    <label>Your phone number<input type="tel" name="phone" maxlength="20" value="{{ user.phone }}"></label>
+    <label>SOS countdown (seconds)<input type="number" name="countdown" min="0" max="15" value="{{ user.countdown }}"><small>Time you have to cancel before the alert is sent. 0 sends immediately.</small></label>
+    <button class="btn">Save changes</button>
+  </form>
+</section>
+{% endblock %}

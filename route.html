@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Safe route · SafeHer AI{% endblock %}
+{% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
+{% block content %}
+<h1>Safe route</h1>
+<p class="lead">Find a walking route, then share your trip with a guardian before you leave.</p>
+<form id="route-form" class="route-form">
+  <input id="dest" placeholder="Where are you going? e.g. Pune Railway Station" required>
+  <button class="btn">Find route</button>
+</form>
+<div id="route-info" class="panel" hidden></div>
+<div id="map" class="map" role="application" aria-label="Route map"></div>
+<div class="row"><button class="btn ghost" id="share-trip" disabled>Share this trip on WhatsApp</button><button class="btn ghost" id="share-live">Share my live location</button></div>
+<ul class="tips">
+  <li>Prefer main roads and well-lit areas, even if the route is a few minutes longer.</li>
+  <li>Tell someone when you expect to arrive, and start a <a href="{{ url_for('checkin') }}">check-in</a>.</li>
+  <li>Route lines come from OpenStreetMap services and may not show lighting or crowd levels.</li>
+</ul>
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map=L.map('map').setView([18.5204,73.8567],12);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+let me=null, layer=null, tripText='';
+getPosition().then(p=>{ if(!p) return; me=p; map.setView([p.lat,p.lng],14); L.marker([p.lat,p.lng]).addTo(map).bindPopup('You are here'); });
+const info=document.getElementById('route-info');
+document.getElementById('route-form').addEventListener('submit',async e=>{
+  e.preventDefault(); info.hidden=false; info.textContent='Finding route…';
+  try{
+    if(!me){ me=await getPosition(); }
+    if(!me){ info.textContent='Allow location access so we can start the route from where you are.'; return; }
+    const q=document.getElementById('dest').value.trim();
+    const g=await (await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q))).json();
+    if(!g.length){ info.textContent='Could not find that place. Try adding the city name.'; return; }
+    const d={lat:+g[0].lat,lng:+g[0].lon};
+    const coords=`${me.lng},${me.lat};${d.lng},${d.lat}`;
+    let res=await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`).then(r=>r.json()).catch(()=>null);
+    let mode='walking';
+    if(!res||!res.routes||!res.routes.length){ res=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`).then(r=>r.json()); mode='driving (walking routes unavailable)'; }
+    const r=res.routes[0]; if(layer) map.removeLayer(layer);
+    layer=L.geoJSON(r.geometry,{style:{color:'#4B2E83',weight:5}}).addTo(map); L.marker([d.lat,d.lng]).addTo(map).bindPopup(g[0].display_name.split(',').slice(0,2).join(','));
+    map.fitBounds(layer.getBounds(),{padding:[30,30]});
+    const km=(r.distance/1000).toFixed(1), min=Math.round(r.duration/60);
+    const h=new Date().getHours(), night=(h>=20||h<6);
+    info.innerHTML=''; const b=document.createElement('b'); b.textContent=`${km} km · about ${min} min (${mode})`; info.appendChild(b);
+    const p=document.createElement('p'); p.textContent=night?'It is late. Share your trip and start a check-in before you set off.':'Share your trip so someone knows where you are headed.'; info.appendChild(p);
+    tripText=`I'm heading to ${g[0].display_name.split(',').slice(0,2).join(',')}. About ${km} km, ${min} min. My location now: https://www.google.com/maps?q=${me.lat.toFixed(6)},${me.lng.toFixed(6)}`;
+    document.getElementById('share-trip').disabled=false;
+  }catch(err){ info.textContent='Could not get a route right now. Check your connection and try again.'; }
+});
+document.getElementById('share-trip').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(tripText),'_blank');
+document.getElementById('share-live').onclick=async()=>{ const p=await getPosition(); if(!p){alert('Allow location access to share your location.');return;} window.open('https://wa.me/?text='+encodeURIComponent('My current location: https://www.google.com/maps?q='+p.lat.toFixed(6)+','+p.lng.toFixed(6)),'_blank'); };
+</script>
+{% endblock %}

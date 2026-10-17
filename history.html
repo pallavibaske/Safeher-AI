@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}History · SafeHer AI{% endblock %}
+{% block content %}
+<h1>SOS history</h1>
+{% if events %}
+<ul class="cards">
+  {% for e in events %}
+  <li class="panel">
+    <div class="between"><b>{{ 'Low battery alert' if e.trigger=='battery' else ('Check-in escalation' if e.trigger=='checkin' else 'SOS alert') }}</b><span class="muted">{{ e.created_at }}</span></div>
+    <div class="muted">Delivery: {{ e.notified }}{% if e.battery is not none %} · Battery {{ e.battery }}%{% endif %}</div>
+    {% if e.lat is not none %}<a href="https://www.google.com/maps?q={{ e.lat }},{{ e.lng }}" target="_blank" rel="noopener">Open location on map</a>{% else %}<span class="muted">No location was available</span>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="panel empty"><b>No alerts yet.</b><p>When you send an SOS, it will be listed here.</p></div>
+{% endif %}
+<h2>Safety check-ins</h2>
+{% if checks %}
+<ul class="cards">{% for c in checks %}<li class="panel between"><span>{{ {'safe':'Marked safe','help':'Asked for help','no_response':'No response'}[c.response] }}</span><span class="muted">{{ c.created_at }}</span></li>{% endfor %}</ul>
+{% else %}<p class="muted">No check-ins recorded.</p>{% endif %}
+{% endblock %}
