@@ -1,14 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="hero-full">
-  <div class="hero-inner">
+<section class="hero">
+  <div class="hero-text">
     <h1>One press to reach the people who will come.</h1>
-    <p class="lead">SafeHer AI puts your SOS alert, live location, trusted contacts and an AI safety assistant in one place, so you don't have to juggle apps when time matters.</p>
+    <p class="lead">SafeHer AI puts your SOS alert, live location, trusted contacts, an AI safety assistant, safety check-ins and safe routes in one place, so you don't have to juggle apps when time matters.</p>
     <div class="row">
       <a class="btn big" href="{{ url_for('signup') }}">Create your account</a>
       <a class="btn ghost big" href="{{ url_for('login') }}">Sign in</a>
     </div>
     <p class="fine">In immediate danger, call <a href="tel:112">112</a> first. SafeHer AI supports emergency services; it does not replace them.</p>
+  </div>
+  <div class="hero-sos" aria-hidden="true">
+    <div class="sos-demo"><span>SOS</span><small>मदत</small></div>
   </div>
 </section>
 <section class="grid-3 features">

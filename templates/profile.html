@@ -1,13 +1,15 @@
-{% extends "base.html" %}{% block body %}<h1>Profile & Emergency Contacts</h1>
-<div class="card"><form method="post"><input type="hidden" name="action" value="profile">
-<label>Name</label><input name="name" value="{{ user['name'] }}" required><label>Phone</label><input name="phone" value="{{ user['phone'] or '' }}">
-<label>Email</label><input value="{{ user['email'] }}" disabled><button class="btn">Save profile</button></form></div>
-<h3>Emergency contacts / guardians</h3>
-<table><tr><th>Name</th><th>Relation</th><th>Phone</th><th>Email</th><th></th></tr>
-{% for c in contacts %}<tr><td>{{ c['name'] }}</td><td>{{ c['relation'] or '' }}</td><td>{{ c['phone'] or '' }}</td><td>{{ c['email'] or '' }}</td>
-<td><form method="post"><input type="hidden" name="action" value="delete_contact"><input type="hidden" name="id" value="{{ c['id'] }}"><button class="btn ghost" style="padding:4px 10px">Delete</button></form></td></tr>
-{% else %}<tr><td colspan="5" class="mut">No contacts yet.</td></tr>{% endfor %}</table>
-<div class="card" style="margin-top:14px"><h3>Add contact</h3><form method="post"><input type="hidden" name="action" value="add_contact">
-<div class="row"><div><label>Name</label><input name="name" required></div><div><label>Relation</label><input name="relation" placeholder="Mother, friend…"></div></div>
-<div class="row"><div><label>Phone</label><input name="phone" type="tel"></div><div><label>Email (needed for email alerts)</label><input name="email" type="email"></div></div>
-<button class="btn">Add</button></form></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Profile · SafeHer AI{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>Profile and settings</h1>
+  <form method="post" class="form panel">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Full name<input name="name" required maxlength="80" value="{{ user.name }}"></label>
+    <label>Email<input value="{{ user.email }}" disabled></label>
+    <label>Your phone number<input type="tel" name="phone" maxlength="20" value="{{ user.phone }}"></label>
+    <label>SOS countdown (seconds)<input type="number" name="countdown" min="0" max="15" value="{{ user.countdown }}"><small>Time you have to cancel before the alert is sent. 0 sends immediately.</small></label>
+    <button class="btn">Save changes</button>
+  </form>
+</section>
+{% endblock %}
